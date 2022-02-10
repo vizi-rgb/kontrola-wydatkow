@@ -52,7 +52,6 @@ double *money_stdin(int *i) {
     }
 
     money = realloc(money, sizeof *money * *i);
-    date_check();
     return money;
 }
 
@@ -73,12 +72,11 @@ void money_to_file(double *money_vec, int n) {
 
 
 int main(int argc, char **argv) {
-    FILE *file;
     int choice;
     int run = 1;
     int n_of_inputs;
     char buf[STDIN_SIZE];
-    double *money_vec;
+    double *money_vec = NULL;
 
     while (run) {
         fprintf(stdout,  "\t[D]odaj kwote\n"
@@ -94,6 +92,7 @@ int main(int argc, char **argv) {
                 n_of_inputs = 0;
                 money_vec = money_stdin(&n_of_inputs); 
                 money_to_file(money_vec, n_of_inputs);
+                free(money_vec);
             }
             break;
             
@@ -106,17 +105,13 @@ int main(int argc, char **argv) {
             case 'W':
             case 'w': {
                 printf("Wychodzenie z programu...\n");
-                return 0;
+                run = 0;
             }
             break;
 
             default: break;
         }
     }
-
-    
-
-
 
     return 0;
 }
