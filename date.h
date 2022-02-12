@@ -5,5 +5,6 @@
 
 int date_check(struct tm *);
 long int date_find(struct tm *);
+int *date_list(int *);
 
 #endif

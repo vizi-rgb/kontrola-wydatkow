@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "money.h"
 #include "config.h"
@@ -57,7 +58,7 @@ void money_to_file(double *money_vec, int n, struct tm *time_info) {
     }
 
     for (int i = 0; i < n; i++)  
-        fprintf(out, "%.2lf\n", money_vec[i]);
+        fprintf(out, "%.2lf\n", fabs(money_vec[i]));
 
     fclose(out);
 

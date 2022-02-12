@@ -53,3 +53,21 @@ long int date_find(struct tm *time_info) {
 
     return -2; 
 }
+
+int *date_list(int *n) {
+    FILE *in = fopen(FILE_NAME, "r");
+    char buf[BUF_SIZE];
+    int size = 20;
+    int *dates_in_file = malloc(sizeof *dates_in_file * size); 
+    // dates_in_file = { 1, 2002  month, year
+    //                   3, 2003}
+
+    if (in == NULL) 
+        return NULL;
+
+    while (fgets(buf, BUF_SIZE, in) != EOF) {
+        if (buf[0] == '-')
+            return (int *) 0;
+    }
+
+}
