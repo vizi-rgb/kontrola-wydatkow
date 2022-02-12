@@ -4,7 +4,7 @@
 #include <time.h>
 
 int date_check(struct tm *);
-long int date_find(struct tm *);
+long int date_find(int, int);
 int *date_list(int *);
 
 #endif

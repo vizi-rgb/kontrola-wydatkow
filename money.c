@@ -26,7 +26,7 @@ double *money_stdin(int *i) {
 }
 
 
-double *money_from_file(int *i, struct tm *time_info) {
+double *money_from_file(int *i, int m, int y) {
     FILE *in = fopen(FILE_NAME, "r");
     if (in == NULL)
         return NULL;
@@ -34,7 +34,10 @@ double *money_from_file(int *i, struct tm *time_info) {
     int size = 100;
     double *money = malloc(sizeof *money * size);
 
-    if (fseek(in, date_find(time_info), SEEK_SET) != 0)
+    if (date_find(m, y) < 0)
+        return NULL;
+
+    if (fseek(in, date_find(m, y), SEEK_SET) != 0)
         return NULL;
 
     while (fscanf(in, "%lf\n", money + *i) == 1) {

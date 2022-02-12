@@ -30,7 +30,7 @@ int date_check(struct tm *time_info) {
     return 0;
 }
 
-long int date_find(struct tm *time_info) {
+long int date_find(int m, int y) {
     FILE *in = fopen(FILE_NAME, "r");
     char buf[BUF_SIZE];
     long int cur_pos = -1;
@@ -44,7 +44,7 @@ long int date_find(struct tm *time_info) {
             if (sscanf(buf + 3, "%d.%d", &month, &year) != 2)
                 return -2; // formatting problem occured in the txt file 
 
-            if (time_info->tm_mon == month && time_info->tm_year + 1900 == year) {
+            if (m == month && y == year) {
                 cur_pos = ftell(in);
                 fclose(in);
                 return cur_pos;
