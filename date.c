@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "date.h"
 #include "config.h"
 
@@ -65,9 +67,20 @@ int *date_list(int *n) {
     if (in == NULL) 
         return NULL;
 
-    while (fgets(buf, BUF_SIZE, in) != EOF) {
-        if (buf[0] == '-')
-            return (int *) 0;
+    while (fgets(buf, BUF_SIZE, in) != NULL) {
+        if (buf[0] == '-') {
+            sscanf(buf + 3, "%d.%d", dates_in_file + *n, dates_in_file + *n + 1);
+            (*n) += 2;
+
+            if (*n == size - 2) {
+                size *= 2;
+                dates_in_file = realloc(dates_in_file, sizeof *dates_in_file * size);
+            } 
+        }
     }
+
+    fclose(in);
+    dates_in_file = realloc(dates_in_file, sizeof *dates_in_file * *n);
+    return dates_in_file;
 
 }
