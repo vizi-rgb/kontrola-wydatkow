@@ -41,8 +41,10 @@ long int date_find(int m, int y) {
 
     while (fgets(buf, BUF_SIZE, in) != NULL) {
         if (buf[0] == '-') {
-            if (sscanf(buf + 3, "%d.%d", &month, &year) != 2)
+            if (sscanf(buf + 3, "%d.%d", &month, &year) != 2) {
+                fclose(in);
                 return -2; // formatting problem occured in the txt file 
+            }
 
             if (m == month && y == year) {
                 cur_pos = ftell(in);
@@ -52,7 +54,7 @@ long int date_find(int m, int y) {
         }
 
     }
-
+    fclose(in);
     return -2; 
 }
 

@@ -6,5 +6,6 @@
 double *money_stdin(int *);
 double *money_from_file(int *, int, int);
 void money_to_file(double *, int, struct tm *);
+double *money_summary(int *);
 
 #endif

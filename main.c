@@ -7,24 +7,48 @@
 #include "money.h"
 #include "config.h"
 
-int report_menu(int *date_vec, int *n_of_d, double *money_vec, int *n_of_s, struct tm *time_info) {
+int report_menu(struct tm *time_info) {
     char buf[BUF_SIZE];
-    int choice;
+    int choice, n;
+
+    int *date_vec = NULL;
+    double *money_vec = NULL;
+
     fgets(buf, BUF_SIZE, stdin);
 
     switch(buf[0]) {
         case 'P':
         case 'p': {
-            ; //podsumowanie
+            n = 0;
+            if ((date_vec = date_list(&n)) == NULL) {
+                return -1;
+            }
+
+            if ((money_vec = money_summary(&n)) == NULL) {
+                free(date_vec);
+                return -2;
+            }
+
+            fprintf(stdout, "\n");
+            for (int i = 0; i < n; i++) {
+                fprintf(stdout, "\t%02d.%d | %.2lf \n", date_vec[2 * i], date_vec[2 * i + 1], money_vec[i]);
+            }
+            fprintf(stdout, "\n");
+
+            free(date_vec);
+            free(money_vec); 
         }
         break;
 
         case 'S':
         case 's': {
-            *n_of_d = 0;
-            fprintf(stdout, "Wybierz miesiac:\n"); 
-            date_vec = date_list(n_of_d);
-            for (int i = 0; i < *n_of_d; i += 2) {
+            fprintf(stdout, "\nWybierz miesiac:\n"); 
+            n = 0; // elements in array date_vec
+            if ((date_vec = date_list(&n)) == NULL) {
+                return -3;
+            }
+
+            for (int i = 0; i < n; i += 2) {
                 fprintf(stdout, "%d. %02d.%d\n", i/2 + 1, date_vec[i], date_vec[i+1]);
             }
             fprintf(stdout, "0. Aktualny miesiac\n");
@@ -34,23 +58,27 @@ int report_menu(int *date_vec, int *n_of_d, double *money_vec, int *n_of_s, stru
                 if (sscanf(buf, "%d", &choice) < 1) 
                     return -1;
 
-            } while (choice < 0 || choice > *n_of_d/2 + 1);
+            } while (choice < 0 || choice > n/2 + 1);
 
-            *n_of_s = 0;
+            n = 0; // elements in money_vec
 
             if (choice == 0) {
-                money_vec = money_from_file(n_of_s, time_info->tm_mon, time_info->tm_year + 1900);
+                money_vec = money_from_file(&n, time_info->tm_mon, time_info->tm_year + 1900);
             } else {
-                money_vec = money_from_file(n_of_s, date_vec[(choice - 1) * 2], date_vec[2 * choice - 1]);
+                money_vec = money_from_file(&n, date_vec[(choice - 1) * 2], date_vec[2 * choice - 1]);
             }
 
             double suma = 0;
-            for (int i = 0; i < *n_of_s; i++) {
+            fprintf(stdout, "\n");
+            for (int i = 0; i < n; i++) {
                 fprintf(stdout, "%.2lf\n", money_vec[i]);
                 suma += money_vec[i];
             }
             fprintf(stdout, "---\n");
-            fprintf(stdout, "Lacznie: %.2lf\n", suma); 
+            fprintf(stdout, "Lacznie: %.2lf\n\n", suma); 
+
+            free(money_vec);
+            free(date_vec);
 
         }
         break;
@@ -65,12 +93,9 @@ int main(int argc, char **argv) {
     // TODO zrobic porzadek ze zmiennymi n_of...
     int choice;
     int run = 1;
-    int n_of_inputs;
-    int n_of_sums_in_file;
-    int n_of_dates_in_file;
+    int n_in_array;
 
     double *money_vec = NULL;
-    int *date_vec = NULL;
 
     char buf[BUF_SIZE];
     time_t seconds = time(NULL);
@@ -88,9 +113,9 @@ int main(int argc, char **argv) {
             case 'D':
             case 'd': {
                 fprintf(stdout, "Kwoty:\n");
-                n_of_inputs = 0;
-                money_vec = money_stdin(&n_of_inputs); 
-                money_to_file(money_vec, n_of_inputs, time_info);
+                n_in_array = 0;
+                money_vec = money_stdin(&n_in_array); 
+                money_to_file(money_vec, n_in_array, time_info);
                 free(money_vec);
             }
             break;
@@ -101,13 +126,11 @@ int main(int argc, char **argv) {
                                 "\t[S]zczegolowo\n"
                                 "\t[W]stecz\n");
 
-                if (report_menu(date_vec, &n_of_dates_in_file, money_vec, &n_of_sums_in_file, time_info) != 0) {
+                if (report_menu(time_info) != 0) {
                     fprintf(stderr, "Blad [case 'R']\n");
                     return -1; 
                 }
 
-                free(date_vec);
-                free(money_vec);
             }
             break;
 
