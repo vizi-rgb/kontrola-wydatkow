@@ -23,8 +23,12 @@ int report_menu(struct tm *time_info) {
         case 'P':
         case 'p': {
             n = 0;
-            if ((date_vec = date_list(&n)) == NULL) {
+
+            if ((date_vec = date_list(&n)) == (int *)3) {
                 return -1;
+            } else if (date_vec == NULL) {
+                fprintf(stdout, "W bazie nie ma jeszcze rekordow!\n");
+                return 0;
             }
 
             if ((money_vec = money_summary(&n)) == NULL) {
@@ -48,6 +52,9 @@ int report_menu(struct tm *time_info) {
             fprintf(stdout, "\nWybierz miesiac:\n"); 
             n = 0; // elements in array date_vec
             if ((date_vec = date_list(&n)) == NULL) {
+                fprintf(stdout, "W bazie nie ma jeszcze rekordow!\n");
+                return 0;
+            } else if (date_vec == (int *) 3) {
                 return -3;
             }
 
@@ -61,7 +68,7 @@ int report_menu(struct tm *time_info) {
                 if (sscanf(buf, "%d", &choice) < 1) 
                     return -1;
 
-            } while (choice < 0 || choice > n/2 + 1);
+            } while (choice < 0 || choice > n/2);
 
             n = 0; // elements in money_vec
 
@@ -69,6 +76,12 @@ int report_menu(struct tm *time_info) {
                 money_vec = money_from_file(&n, time_info->tm_mon, time_info->tm_year + 1900);
             } else {
                 money_vec = money_from_file(&n, date_vec[(choice - 1) * 2], date_vec[2 * choice - 1]);
+            }
+
+            if (n != 0 && money_vec == NULL) {
+                free(date_vec);
+                fprintf(stdout, "Zabraklo pamieci...\n");
+                return -3;
             }
 
             double suma = 0;

@@ -60,14 +60,21 @@ long int date_find(int m, int y) {
 
 int *date_list(int *n) {
     FILE *in = fopen(FILE_NAME, "r");
+
+    if (in == NULL) 
+        return NULL;
+
     char buf[BUF_SIZE];
     int size = 20;
     int *dates_in_file = malloc(sizeof *dates_in_file * size); 
     // dates_in_file = { 1, 2002  month, year
     //                   3, 2003}
+    //
+    if (dates_in_file == NULL) {
+        fclose(in);
+        return (int *) 3;
+    }
 
-    if (in == NULL) 
-        return NULL;
 
     while (fgets(buf, BUF_SIZE, in) != NULL) {
         if (buf[0] == '-') {

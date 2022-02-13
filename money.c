@@ -11,11 +11,13 @@ double *money_stdin(int *i) {
     double *money = malloc(sizeof *money * size);
     char character; 
 
-    while (scanf("%lf%c", money + (*i)++, &character) == 2) {
-        if (*i == size - 2) {
+    while (scanf("%lf%c", money + *i, &character) == 2) {
+        if (*i == size - 1) {
             size *= 2;
             money = realloc(money, sizeof *money * size);
         }
+
+        (*i)++;
 
         if (character == '\n')
             break;
@@ -34,10 +36,15 @@ double *money_from_file(int *i, int m, int y) {
     int size = 100;
     double *money = malloc(sizeof *money * size);
 
+    if (money == NULL) {
+        fclose(in);
+        return NULL;
+    }
+
     if (date_find(m, y) < 0 || fseek(in, date_find(m, y), SEEK_SET) != 0) {
         fclose(in);
         free(money);
-        return NULL;
+        return (double *) 1;
     }
 
     while (fscanf(in, "%lf\n", money + *i) == 1) {
