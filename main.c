@@ -7,6 +7,9 @@
 #include "money.h"
 #include "config.h"
 
+// TODO testy
+// TODO edycja zapisanych rekordow
+
 int report_menu(struct tm *time_info) {
     char buf[BUF_SIZE];
     int choice, n;
@@ -90,7 +93,6 @@ int report_menu(struct tm *time_info) {
 }
 
 int main(int argc, char **argv) {
-    // TODO zrobic porzadek ze zmiennymi n_of...
     int choice;
     int run = 1;
     int n_in_array;
