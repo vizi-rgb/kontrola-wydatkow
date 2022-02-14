@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
+#include <math.h>
 
 #include "date.h"
 #include "money.h"
@@ -10,111 +12,81 @@
 // TODO testy
 // TODO edycja zapisanych rekordow
 
-int report_menu(struct tm *time_info) {
-    char buf[BUF_SIZE];
-    int choice, n;
-
-    int *date_vec = NULL;
-    double *money_vec = NULL;
-
-    fgets(buf, BUF_SIZE, stdin);
-
-    switch(buf[0]) {
-        case 'P':
-        case 'p': {
-            n = 0;
-
-            if ((date_vec = date_list(&n)) == (int *)3) {
-                return -1;
-            } else if (date_vec == NULL) {
-                fprintf(stdout, "W bazie nie ma jeszcze rekordow!\n");
-                return 0;
-            }
-
-            if ((money_vec = money_summary(&n)) == NULL) {
-                free(date_vec);
-                return -2;
-            }
-
-            fprintf(stdout, "\n");
-            for (int i = 0; i < n; i++) {
-                fprintf(stdout, "\t%02d.%d | %.2lf \n", date_vec[2 * i], date_vec[2 * i + 1], money_vec[i]);
-            }
-            fprintf(stdout, "\n");
-
-            free(date_vec);
-            free(money_vec); 
-        }
-        break;
-
-        case 'S':
-        case 's': {
-            fprintf(stdout, "\nWybierz miesiac:\n"); 
-            n = 0; // elements in array date_vec
-            if ((date_vec = date_list(&n)) == NULL) {
-                fprintf(stdout, "W bazie nie ma jeszcze rekordow!\n");
-                return 0;
-            } else if (date_vec == (int *) 3) {
-                return -3;
-            }
-
-            for (int i = 0; i < n; i += 2) {
-                fprintf(stdout, "%d. %02d.%d\n", i/2 + 1, date_vec[i], date_vec[i+1]);
-            }
-            fprintf(stdout, "0. Aktualny miesiac\n");
-
-            do {
-                fgets(buf, BUF_SIZE, stdin);
-                if (sscanf(buf, "%d", &choice) < 1) 
-                    return -1;
-
-            } while (choice < 0 || choice > n/2);
-
-            n = 0; // elements in money_vec
-
-            if (choice == 0) {
-                money_vec = money_from_file(&n, time_info->tm_mon, time_info->tm_year + 1900);
-            } else {
-                money_vec = money_from_file(&n, date_vec[(choice - 1) * 2], date_vec[2 * choice - 1]);
-            }
-
-            if (n != 0 && money_vec == NULL) {
-                free(date_vec);
-                fprintf(stdout, "Zabraklo pamieci...\n");
-                return -3;
-            }
-
-            double suma = 0;
-            fprintf(stdout, "\n");
-            for (int i = 0; i < n; i++) {
-                fprintf(stdout, "%.2lf\n", money_vec[i]);
-                suma += money_vec[i];
-            }
-            fprintf(stdout, "---\n");
-            fprintf(stdout, "Lacznie: %.2lf\n\n", suma); 
-
-            free(money_vec);
-            free(date_vec);
-
-        }
-        break;
-
-        default: break;
-    }
-
-    return 0; 
-}
 
 int main(int argc, char **argv) {
     int choice;
     int run = 1;
     int n_in_array;
+    int opt;
 
     double *money_vec = NULL;
 
     char buf[BUF_SIZE];
     time_t seconds = time(NULL);
     struct tm *time_info = localtime(&seconds);
+
+    while ((opt = getopt(argc, argv, "d:ps:")) != -1) {
+        switch (opt) {
+            case 'd': {
+                int i = 0;
+                int l = 0;
+                char buf[BUF_SIZE];
+                int size = BUF_SIZE/10;
+                money_vec = malloc(sizeof *money_vec * size);
+                while (sscanf(optarg + l, "%s", buf) == 1) {
+                    l += strlen(buf) + (strstr(optarg + l, buf) - (optarg + l));
+                    money_vec[i++] = atof(buf);
+                    if (i > size) {
+                        size *= 2;
+                        money_vec = realloc(money_vec, sizeof *money_vec * size);
+                    }
+                }
+                money_to_file(money_vec, i, time_info);
+                free(money_vec);
+              }
+                break;
+
+            case 'p': {
+                int return_code;
+                if ((return_code = money_summary_print()) != 0 ) {
+                    fprintf(stdout, "Blad krytyczny, kod wyjscia %d\n", return_code);
+                    return -3;
+                }
+            }
+                break;
+
+            case 's': {
+                int month, year;
+                int n = 0;
+                double suma = 0;
+                if (sscanf(optarg, "%d.%d", &month, &year) != 2) {
+                    fprintf(stdout, "%s: -s month.year\n", argv[0]);
+                    return -2;
+                }
+                
+                if ((money_vec = money_from_file(&n, month, year)) == (double *) 2) {
+                    fprintf(stdout, "Nie ma zapisanych danych\n");
+                } else if (money_vec == NULL) {
+                    fprintf(stdout, "Zabraklo pamieci.\n");
+                    return -3;
+                } else if (money_vec == (double *) 1) {
+                    fprintf(stdout, "Lacznie: 0.00\n");
+                } else { 
+                    fprintf(stdout, "\n");
+                    for (int i = 0; i < n; i++) {
+                        fprintf(stdout, "%.02lf\n", money_vec[i]);
+                        suma += money_vec[i];
+                    }
+                    fprintf(stdout, "\nLacznie: %.02lf\n", suma);
+                    free(money_vec);
+                }
+            }
+                break;
+            }
+    }
+    
+    if (argc > 1)
+        return 0;
 
     while (run) {
         fprintf(stdout,  "\t[D]odaj kwote\n"
@@ -141,7 +113,7 @@ int main(int argc, char **argv) {
                                 "\t[S]zczegolowo\n"
                                 "\t[W]stecz\n");
 
-                if (report_menu(time_info) != 0) {
+                if (money_report_menu(time_info) != 0) {
                     fprintf(stderr, "Blad [case 'R']\n");
                     return -1; 
                 }
