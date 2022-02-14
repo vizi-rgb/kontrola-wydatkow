@@ -9,8 +9,6 @@
 #include "money.h"
 #include "config.h"
 
-// TODO testy
-// TODO edycja zapisanych rekordow
 
 
 int main(int argc, char **argv) {

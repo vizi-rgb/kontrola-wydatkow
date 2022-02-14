@@ -19,7 +19,7 @@ int date_check(struct tm *time_info) {
             if (sscanf(buf + 3, "%d.%d", &month, &year) != 2)
                 return -2;
 
-            if (month == time_info->tm_mon && year == time_info->tm_year + 1900) {
+            if (month == time_info->tm_mon + 1 && year == time_info->tm_year + 1900) {
                 fclose(we);
                 return 1;
             }

@@ -66,7 +66,7 @@ double *money_from_file(int *i, int m, int y) {
 void money_to_file(double *money_vec, int n, struct tm *time_info) {
     FILE *out = fopen(FILE_NAME, "a");
     if (!date_check(time_info)) {
-        fprintf(out, "-- %02d.%d\n", time_info->tm_mon, time_info->tm_year + 1900); 
+        fprintf(out, "-- %02d.%d\n", time_info->tm_mon + 1, time_info->tm_year + 1900); 
     }
 
     for (int i = 0; i < n; i++)  
@@ -109,32 +109,32 @@ double *money_summary(int *n) {
 }
 
 int money_summary_print() { 
-            int n = 0;
-            int *date_vec = NULL;
-            double *money_vec = NULL;
+    int n = 0;
+    int *date_vec = NULL;
+    double *money_vec = NULL;
 
-            if ((date_vec = date_list(&n)) == (int *)3) {
-                return -1;
-            } else if (date_vec == NULL) {
-                fprintf(stdout, "W bazie nie ma jeszcze rekordow!\n");
-                return 0;
-            }
+    if ((date_vec = date_list(&n)) == (int *)3) {
+        return -1;
+    } else if (date_vec == NULL) {
+        fprintf(stdout, "W bazie nie ma jeszcze rekordow!\n");
+        return 0;
+    }
 
-            if ((money_vec = money_summary(&n)) == NULL) {
-                free(date_vec);
-                return -2;
-            }
+    if ((money_vec = money_summary(&n)) == NULL) {
+        free(date_vec);
+        return -2;
+    }
 
-            fprintf(stdout, "\n");
-            for (int i = 0; i < n; i++) {
-                fprintf(stdout, "\t%02d.%d | %.2lf \n", date_vec[2 * i], date_vec[2 * i + 1], money_vec[i]);
-            }
-            fprintf(stdout, "\n");
+    fprintf(stdout, "\n");
+    for (int i = 0; i < n; i++) {
+        fprintf(stdout, "\t%02d.%d | %.2lf \n", date_vec[2 * i], date_vec[2 * i + 1], money_vec[i]);
+    }
+    fprintf(stdout, "\n");
 
-            free(date_vec);
-            free(money_vec); 
+    free(date_vec);
+    free(money_vec); 
 
-            return 0;
+        return 0;
 }
 
 int money_report_menu(struct tm *time_info) {
@@ -180,7 +180,7 @@ int money_report_menu(struct tm *time_info) {
             n = 0; // elements in money_vec
 
             if (choice == 0) {
-                money_vec = money_from_file(&n, time_info->tm_mon, time_info->tm_year + 1900);
+                money_vec = money_from_file(&n, time_info->tm_mon + 1, time_info->tm_year + 1900);
             } else {
                 money_vec = money_from_file(&n, date_vec[(choice - 1) * 2], date_vec[2 * choice - 1]);
             }
